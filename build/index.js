@@ -28,8 +28,8 @@ class ProcessCPULoad {
         }
         this._timer = setInterval(() => __awaiter(this, void 0, void 0, function* () {
             const usage = yield this._calc();
-            if (usage >= 0) {
-                listener(usage);
+            if (usage !== null) {
+                listener(usage.total, usage.user, usage.system);
             }
         }), interval);
     }
@@ -47,28 +47,36 @@ class ProcessCPULoad {
             }
         });
     }
-    // FIXME
-    // 1.
     _calcModeNode() {
         return __awaiter(this, void 0, void 0, function* () {
             if (this._prevLoadInfo === null) {
                 this._setLoadInfo();
-                return Promise.resolve(-1);
+                return Promise.resolve(null);
             }
             const elapTime = process.hrtime(this._prevLoadInfo.hrtime);
             const elapUsage = process.cpuUsage(this._prevLoadInfo.usage);
             const elapTimeMS = this._hrtimeToMs(elapTime);
             const elapUserMS = this._usageTimeToMs(elapUsage.user);
             const elapSystMS = this._usageTimeToMs(elapUsage.system);
-            const cpuPercent = parseFloat((100 * (elapUserMS + elapSystMS) / elapTimeMS).toFixed(1));
+            const total = this._calcPercentage(elapUserMS + elapSystMS, elapTimeMS);
+            const user = this._calcPercentage(elapUserMS, elapTimeMS);
+            const system = this._calcPercentage(elapSystMS, elapTimeMS);
             this._setLoadInfo();
-            return Promise.resolve(cpuPercent);
+            return Promise.resolve({
+                total: total,
+                user: user,
+                system: system,
+            });
         });
     }
     _calcModeLinux() {
         return __awaiter(this, void 0, void 0, function* () {
             const { stdout } = yield execp(this._psCommand.replace("$PID", process.pid.toString()));
-            return Promise.resolve(parseFloat(stdout.trim()));
+            return Promise.resolve({
+                total: parseFloat(stdout.trim()),
+                user: null,
+                system: null,
+            });
         });
     }
     _setLoadInfo() {
@@ -83,6 +91,9 @@ class ProcessCPULoad {
     _usageTimeToMs(time) {
         return Math.round(time / 1000); // microsecondToMs
     }
+    _calcPercentage(numerator, denominator) {
+        return parseFloat((100 * numerator / denominator).toFixed(1));
+    }
 }
 exports.ProcessCPULoad = ProcessCPULoad;
-//# sourceMappingURL=cpu-usage.js.map
+//# sourceMappingURL=index.js.map

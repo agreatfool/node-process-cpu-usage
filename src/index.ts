@@ -15,7 +15,13 @@ export interface LoadInfo {
     usage: CpuUsage;
 }
 
-export declare type LoadListener = (percentage: number) => void;
+export interface LoadResult {
+    user: number;
+    system: number;
+    total: number;
+}
+
+export declare type LoadListener = (totalPercentage: number, userPercentage: number, systemPercentage: number) => void;
 
 export class ProcessCPULoad {
     private _mode: "node" | "linux" = "node";
@@ -30,7 +36,7 @@ export class ProcessCPULoad {
         this._mode = mode;
     }
 
-    public start(listener: LoadListener, interval: number = this._interval) {
+    public start(listener: LoadListener, interval: number = this._interval): void {
         if (this._timer !== null) {
             // already running, have to stop first
             return;
@@ -39,18 +45,18 @@ export class ProcessCPULoad {
         this._timer = setInterval(async () => {
             const usage = await this._calc();
 
-            if (usage >= 0) { // means correct data
-                listener(usage);
+            if (usage !== null) { // means correct data
+                listener(usage.total, usage.user, usage.system);
             }
         }, interval);
     }
 
-    public stop() {
+    public stop(): void {
         clearInterval(this._timer);
         this._timer = null;
     }
 
-    private async _calc() {
+    private async _calc(): Promise<LoadResult> {
         if (this._mode === "node") {
             return await this._calcModeNode();
         } else {
@@ -58,14 +64,11 @@ export class ProcessCPULoad {
         }
     }
 
-    // FIXME
-    // 1.
-
-    private async _calcModeNode(): Promise<number> {
+    private async _calcModeNode(): Promise<LoadResult> {
         if (this._prevLoadInfo === null) { // no previous data, init it
             this._setLoadInfo();
 
-            return Promise.resolve(-1);
+            return Promise.resolve(null);
         }
 
         const elapTime: Hrtime = process.hrtime(this._prevLoadInfo.hrtime);
@@ -74,31 +77,46 @@ export class ProcessCPULoad {
         const elapTimeMS = this._hrtimeToMs(elapTime);
         const elapUserMS = this._usageTimeToMs(elapUsage.user);
         const elapSystMS = this._usageTimeToMs(elapUsage.system);
-        const cpuPercent = parseFloat((100 * (elapUserMS + elapSystMS) / elapTimeMS).toFixed(1));
+
+        const total = this._calcPercentage(elapUserMS + elapSystMS, elapTimeMS);
+        const user = this._calcPercentage(elapUserMS, elapTimeMS);
+        const system = this._calcPercentage(elapSystMS, elapTimeMS);
 
         this._setLoadInfo();
 
-        return Promise.resolve(cpuPercent);
+        return Promise.resolve({
+            total: total,
+            user: user,
+            system: system,
+        } as LoadResult);
     }
 
-    private async _calcModeLinux(): Promise<number> {
+    private async _calcModeLinux(): Promise<LoadResult> {
         const {stdout} = await execp(this._psCommand.replace("$PID", process.pid.toString()));
 
-        return Promise.resolve(parseFloat(stdout.trim()));
+        return Promise.resolve({
+            total: parseFloat(stdout.trim()),
+            user: null,
+            system: null,
+        } as LoadResult);
     }
 
-    private _setLoadInfo() {
+    private _setLoadInfo(): void {
         this._prevLoadInfo = {
             hrtime: process.hrtime(),
             usage: process.cpuUsage(),
         } as LoadInfo;
     }
 
-    private _hrtimeToMs(time: Hrtime) {
+    private _hrtimeToMs(time: Hrtime): number {
         return Math.round(time[0] * 1000 + time[1] / 1000000); // secondToMs + nanosecondToMs
     }
 
-    private _usageTimeToMs(time: number) {
+    private _usageTimeToMs(time: number): number {
         return Math.round(time / 1000); // microsecondToMs
+    }
+
+    private _calcPercentage(numerator: number, denominator: number): number {
+        return parseFloat((100 * numerator / denominator).toFixed(1))
     }
 }

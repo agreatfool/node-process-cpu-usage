@@ -5,8 +5,8 @@ const ProcessCPULoad = require("../build/index").ProcessCPULoad;
 
 const tracker = new ProcessCPULoad("node"); // "node" | "linux"
 
-tracker.start((usage) => {
-  console.log('CPU Usage: %d', usage);
+tracker.start((total, user, system) => {
+  console.log('CPU Usage: Total: %d, User: %d, System: %d', total, user, system);
 }, 1000);
 
 const express = require('express');
