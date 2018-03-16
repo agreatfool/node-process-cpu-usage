@@ -1,6 +1,6 @@
 {
   "name": "process-cpu-usage",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Calc the percentage cpu usage of node process",
   "main": "build/index.js",
   "directories": {
