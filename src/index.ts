@@ -5,7 +5,6 @@ import {exec} from "child_process";
 
 import Timer = NodeJS.Timer;
 import CpuUsage = NodeJS.CpuUsage;
-import {isNumber} from "util";
 
 const execp = LibUtil.promisify(exec) as (cmd: string) => Promise<{stdout: string, stderr: string}>;
 

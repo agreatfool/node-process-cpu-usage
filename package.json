@@ -1,0 +1,28 @@
+{
+  "name": "process-cpu-usage",
+  "version": "0.0.1",
+  "description": "Calc the percentage cpu usage of node process",
+  "main": "build/index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "dependencies": {
+    "express": "^4.16.3"
+  },
+  "devDependencies": {
+    "@types/node": "^9.4.7"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agreatfool/node-process-cpu-usage.git"
+  },
+  "author": "Jonathan Dai",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/agreatfool/node-process-cpu-usage/issues"
+  },
+  "homepage": "https://github.com/agreatfool/node-process-cpu-usage#readme"
+}
