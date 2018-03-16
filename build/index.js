@@ -85,4 +85,4 @@ class ProcessCPULoad {
     }
 }
 exports.ProcessCPULoad = ProcessCPULoad;
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=cpu-usage.js.map

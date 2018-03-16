@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
+PID=$(ps aux | grep "cpu-usage.js" | grep -v "grep" | awk '{print $2}')
+
+echo "Tracing cpu usage of pid: ${PID}"
+
 while true; do
-    sleep 5
-    ps -p $(ps aux | grep "index.js" | grep -v "grep" | awk '{print $2}') -o %cpu | grep -v "%CPU"
+    sleep 1
+    ps -p ${PID} -o %cpu | grep -v "%CPU"
 done
