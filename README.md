@@ -1,5 +1,4 @@
 # node-process-cpu-usage
-========================
 
 ## Aim
 Get % CPU usage of current node process.
